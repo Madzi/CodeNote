@@ -17,6 +17,16 @@ window.onload = function () {
 
 	var CURRENT_MODE_ON = true;
 
+	chrome.storage.onChanged.addListener(function (changes, areaName) {
+		console.log('On change storage!');
+		console.log(changes);
+		if (areaName === 'local') {
+			if (changes.evernote_credentials) {
+				port.postMessage({method: 'onAuthorise', data: changes.evernote_credentials.newValue});	
+			}
+		}
+	});
+
 	//set handler to extention on icon click
 	chrome.browserAction.onClicked.addListener(function(tab) {
 		var port = chrome.tabs.connect(tab.id);			
@@ -36,16 +46,6 @@ window.onload = function () {
 			});
 		}
 
-		chrome.storage.onChanged.addListener(function (changes, areaName) {
-			console.log('On change storage!');
-			console.log(changes);
-			if (areaName === 'local') {
-				if (changes.evernote_credentials) {
-					port.postMessage({method: 'onAuthorise', data: changes.evernote_credentials.newValue});	
-				}
-			}
-		});
-
 		CURRENT_MODE_ON = !CURRENT_MODE_ON;
 	});	
 };
@@ -56,6 +56,15 @@ var Client = function (options) {
 	this.callbackUrl = options.callbackUrl;
 	this.serviceHost = options.serviceHost;
 	// this.signatureMethod = "HMAC-SHA1";
+};
+
+Client.prototype.PARAM_KEYS = {
+	OAUTH_TOKEN: 'oauth_token',
+	OAUTH_TOKEN_SECRET: 'oauth_token_secret',
+	OAUTH_VERIFIER: 'oauth_verifier',
+	EDAM_NOTESTOREURL: 'edam_noteStoreUrl',
+	EDAM_USERID: 'edam_userId',
+	EXPIRES: 'expires'
 };
 
 Client.prototype.tabListener = function (oauthTabId) {
@@ -71,10 +80,9 @@ Client.prototype.tabListener = function (oauthTabId) {
 				console.log("tabListener!");
 				console.log(event);
 
-				//TODO: add correct parsing
-				params = event.url.split('?')[1].split('&');
-				oauth_token = params[0].split('=')[1];
-				oauth_verifier = params[1].split('=')[1];
+				params = self.getParamValues(event.url.split('?')[1], ['oauth_token', 'oauth_verifier']);
+				oauth_token = params.oauth_token;
+				oauth_verifier = params.oauth_verifier;
 
 				self.getAuthToken(oauth_token, oauth_verifier);
 
@@ -86,11 +94,10 @@ Client.prototype.tabListener = function (oauthTabId) {
 };
 
 Client.prototype.onRequestToken = function (data) {
-	//TODO: add correct parsing
 	var self = this,
-		texts = data.text.split('&'),
-		oauth_token = texts[0].split('=')[1],
-		token_secret = texts[1].split('=')[1],
+		tokens = self.getParamValues(data.text, ['oauth_token', 'oauth_token_secret'])
+		oauth_token = tokens.oauth_token,
+		token_secret = tokens.oauth_token_secret,
 		authURL = self.serviceHost + '/OAuth.action?oauth_token=' + oauth_token;
 			
 	console.log("onRequestToken!");
@@ -118,13 +125,12 @@ Client.prototype.getRequestToken = function () {
 };
 
 Client.prototype.onAuthToken = function (data) {
-	//TODO: add correct parsing
 	var self = this,
-		texts = data.text.split('&'),
-		oauthToken = decodeURIComponent(texts[0].split('=')[1]),
-		userId = texts[3].split('=')[1],
-		expires = texts[4].split('=')[1],
-		noteStoreUrl = decodeURIComponent(texts[5].split('=')[1]),
+		params = self.getParamValues(data.text, [ 'oauth_token', 'edam_userId', 'expires', 'edam_noteStoreUrl' ]),
+		oauthToken = decodeURIComponent(params.oauth_token),
+		userId = params.edam_userId,
+		expires = params.expires,
+		noteStoreUrl = decodeURIComponent(params.edam_noteStoreUrl),
 		evernote_credentials = {
 			oauth_token: oauthToken,
 			user_id: userId,
@@ -173,4 +179,26 @@ Client.prototype.getOAuthClient = function () {
 	}
 	
 	return oauth;
+};
+
+Client.prototype.getParamValues = function(url, keys) {
+	var params = url.split('&'),
+        objKeys = { },
+        result = { },
+        i,
+        temp;
+    
+    for (i = 0; i < keys.length; i += 1) {
+        objKeys[keys[i]] = '';
+    }
+    
+    for (i = 0; i < params.length; i += 1) {
+        temp = params[i].split('=');
+        
+        if (temp[0] in objKeys) {
+            result[temp[0]] = temp[1];    
+        }
+    }
+    
+    return result;	
 };

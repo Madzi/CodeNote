@@ -102,6 +102,196 @@ YUI.add('cn-languages', function (Y) {
         model: Y.CN.Model.Language
     });
 
+    Y.namespace('CN.Language').AS3 = new Y.CN.Model.Language({
+        name: 'as3', aliases: ['as3', 'actionscript3']
+    });
+
+    Y.namespace('CN.Language').AppleScript = new Y.CN.Model.Language({
+        name: 'applescript', aliases: ['applescript']
+    });
+
+    Y.namespace('CN.Language').Bash = new Y.CN.Model.Language({
+        name: 'bash', aliases: ['bash', 'shell', 'sh']
+    });
+
+    Y.namespace('CN.Language').CSharp = new Y.CN.Model.Language({
+        name: 'csharp', aliases: ['csharp', 'c-sharp', 'c#']
+    });
+
+    Y.namespace('CN.Language').ColdFusion = new Y.CN.Model.Language({
+        name: 'cf', aliases: ['coldfusion', 'cf']
+    });
+
+    Y.namespace('CN.Language').Cpp = new Y.CN.Model.Language({
+        name: 'cpp', aliases: ['cpp', 'cc', 'c++', 'c', 'h', 'hpp', 'h++']
+    });
+
+    Y.namespace('CN.Language').Css = new Y.CN.Model.Language({
+        name: 'css', aliases: ['css']
+    });
+
+    Y.namespace('CN.Language').Delphi = new Y.CN.Model.Language({
+        name: 'delphi', aliases: ['delphi', 'pascal', 'pas']
+    });
+
+    Y.namespace('CN.Language').Diff = new Y.CN.Model.Language({
+        name: 'diff', aliases: ['diff', 'patch']
+    });
+
+    Y.namespace('CN.Language').Erlang = new Y.CN.Model.Language({
+        name: 'erlang', aliases: ['erlang', 'erl']
+    });
+
+    Y.namespace('CN.Language').Groovy = new Y.CN.Model.Language({
+        name: 'groovy', aliases: ['groovy']
+    });
+
+    Y.namespace('CN.Language').Haxe = new Y.CN.Model.Language({
+        name: 'haxe', aliases: ['haxe', 'hx']
+    });
+
+    Y.namespace('CN.Language').JScript = new Y.CN.Model.Language({
+        name: 'js', aliases: ['js', 'jscript', 'javascript', 'json'],
+        keywords: [
+            'break', 'case', 'catch', 'class', 'continue',
+            'default', 'delete', 'do', 'else', 'enum',
+            'export', 'extends', 'false', 'for', 'function',
+            'if', 'implements', 'import', 'in', 'instanceof',
+            'interface', 'let', 'new', 'null', 'package',
+            'private', 'protected', 'static', 'return', 'super',
+            'switch', 'this', 'throw', 'true', 'try',
+            'typeof', 'var', 'while', 'with', 'yield'
+        ]
+    });
+
+    Y.namespace('CN.Language').Java = new Y.CN.Model.Language({
+        name: 'java', aliases: ['java'],
+        keywords: [
+            'abstract', 'assert', 'boolean', 'break', 'byte',
+            'case', 'catch', 'char', 'class', 'const',
+            'continue', 'default', 'do', 'double', 'else',
+            'enum', 'extends', 'false', 'final', 'finally',
+            'float', 'for', 'goto', 'if', 'implements',
+            'import', 'instanceof', 'int', 'interface', 'long',
+            'native', 'new', 'null', 'package', 'private',
+            'protected', 'public', 'return', 'short', 'static',
+            'strictfp', 'super', 'switch', 'synchronized', 'this',
+            'throw', 'throws', 'true', 'transient', 'try',
+            'void', 'volatile', 'while'
+        ]
+    });
+
+    Y.namespace('CN.Language').JavaFX = new Y.CN.Model.Language({
+        name: 'javafx', aliases: ['javafx', 'jfx']
+    });
+
+    Y.namespace('CN.Language').Perl = new Y.CN.Model.Language({
+        name: 'perl', aliases: ['perl', 'pl']
+    });
+
+    Y.namespace('CN.Language').Php = new Y.CN.Model.Language({
+        name: 'php', aliases: ['php']
+    });
+
+    Y.namespace('CN.Language').Plain = new Y.CN.Model.Language({
+        name: 'plain', aliases: ['plain', 'text']
+    });
+
+    Y.namespace('CN.Language').PowerShell = new Y.CN.Model.Language({
+        name: 'powershell', aliases: ['powershell', 'ps', 'posh']
+    });
+
+    Y.namespace('CN.Language').Python = new Y.CN.Model.Language({
+        name: 'python', aliases: ['py', 'python']
+    });
+
+    Y.namespace('CN.Language').Ruby = new Y.CN.Model.Language({
+        name: 'ruby', aliases: ['ruby', 'rails', 'ror', 'rb'],
+        keywords: [
+                'alias', 'and', 'BEGIN', 'begin', 'break', 'case', 'class', 'def', 'define_method', 'defined',
+                'do', 'each', 'else', 'elsif', 'END', 'end', 'ensure', 'false', 'for', 'if',
+                'in', 'module', 'new', 'next', 'nil', 'not', 'or', 'raise', 'redo', 'rescue',
+                'retry', 'return', 'self', 'super', 'then', 'throw', 'true', 'undef', 'unless', 'until',
+                'when', 'while', 'yield';
+        ],
+        builtins: [
+                'Array', 'Bignum', 'Binding', 'Class', 'Continuation', 'Dir', 'Exception', 'FalseClass', 'File::Stat', 'File',
+                'Fixnum', 'Fload', 'Hash', 'Integer', 'IO', 'MatchData', 'Method', 'Module', 'NilClass', 'Numeric',
+                'Object', 'Proc', 'Range', 'Regexp', 'String', 'Struct::TMS', 'Symbol', 'ThreadGroup', 'Thread', 'Time', 'TrueClass'
+        ],
+        regexs: [
+            { regex: SyntaxHighlighter.regexLib.singleLinePerlComments, style: 'comments' },
+            { regex: SyntaxHighlighter.regexLib.doubleQuotedString,     style: 'string' },
+            { regex: SyntaxHighlighter.regexLib.singleQuotedString,     style: 'string' },
+            { regex: /\b[A-Z0-9_]+\b/g,                                 style: 'constants' },
+            { regex: /:[a-z][A-Za-z0-9_]*/g,                            style: 'color2' },
+            { regex: /(\$|@@|@)\w+/g,                                   style: 'variable bold' },
+            { regex: new RegExp(this.getKeywords(keywords), 'gm'),      style: 'keyword' },
+            { regex: new RegExp(this.getKeywords(builtins), 'gm'),      style: 'color1' }
+        ]
+    });
+
+    Y.namespace('CN.Language').Sass = new Y.CN.Model.Language({
+        name: 'sass', aliases: ['sass', 'scss']
+    });
+
+    Y.namespace('CN.Language')Scala. = new Y.CN.Model.Language({
+        name: 'scala', aliases: ['scala']
+    });
+
+    Y.namespace('CN.Language').Sql = new Y.CN.Model.Language({
+        name: 'sql', aliases: ['sql']
+    });
+
+    Y.namespace('CN.Language').TAP = new Y.CN.Model.Language({
+        name: 'tap', aliases: ['tap']
+    });
+
+    Y.namespace('CN.Language').TypeScript = new Y.CN.Model.Language({
+        name: 'typescript', aliases: ['typescript', 'ts']
+    });
+
+    Y.namespace('CN.Language').Vb = new Y.CN.Model.Language({
+        name: 'vb', aliases: ['vb', 'vbnet']
+    });
+
+    Y.namespace('CN.Language').Xml = new Y.CN.Model.Language({
+        name: 'xml', aliases: ['xml', 'xhtml', 'xslt', 'html', 'plist']
+    });
+
+    var langs = = new Y.CN.Model.List.Language();
+
+    langs.add(Y.CN.Language.AS3);
+    langs.add(Y.CN.Language.AppleScript);
+    langs.add(Y.CN.Language.Bash);
+    langs.add(Y.CN.Language.CSharp);
+    langs.add(Y.CN.Language.ColdFusion);
+    langs.add(Y.CN.Language.Cpp);
+    langs.add(Y.CN.Language.Css);
+    langs.add(Y.CN.Language.Delphi);
+    langs.add(Y.CN.Language.Diff);
+    langs.add(Y.CN.Language.Erlang);
+    langs.add(Y.CN.Language.Groovy);
+    langs.add(Y.CN.Language.Haxe);
+    langs.add(Y.CN.Language.JScript);
+    langs.add(Y.CN.Language.Java);
+    langs.add(Y.CN.Language.JavaFX);
+    langs.add(Y.CN.Language.Perl);
+    langs.add(Y.CN.Language.Php);
+    langs.add(Y.CN.Language.Plain);
+    langs.add(Y.CN.Language.PowerShell);
+    langs.add(Y.CN.Language.Python);
+    langs.add(Y.CN.Language.Ruby);
+    langs.add(Y.CN.Language.Sass);
+    langs.add(Y.CN.Language.Scala);
+    langs.add(Y.CN.Language.Sql);
+    langs.add(Y.CN.Language.TAP);
+    langs.add(Y.CN.Language.TypeScript);
+    langs.add(Y.CN.Language.Vb);
+    langs.add(Y.CN.Language.Xml);
+
+    Y.namespace('CN').LanguageList = langs;
+
 }, '1.0', {
     requires: [
         'model',
@@ -268,174 +458,7 @@ YUI.add('cn-lang-detector', function (Y) {
     }, {
         ATTRS: {
             languages: {
-                valueFn: function () {
-                    var langs = new Y.CN.Model.List.Language();
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'applescript',
-                        aliases : ['applescript']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'as3',
-                        aliases : ['as3', 'actionscript3']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'bash',
-                        aliases : ['bash', 'shell', 'sh']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'cf',
-                        aliases : ['coldfusion', 'cf']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'cpp',
-                        aliases : ['cpp', 'cc', 'c++', 'c', 'h', 'hpp', 'h++']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'csharp',
-                        aliases : ['c#', 'c-sharp', 'csharp']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'css',
-                        aliases : ['css']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'delphi',
-                        aliases : ['delphi', 'pascal', 'pas']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'diff',
-                        aliases : ['diff', 'patch']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'erlang',
-                        aliases : ['erl', 'erlang']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'groovy',
-                        aliases : ['groovy']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'haxe',
-                        aliases : ['haxe', 'hx']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name: 'java',
-                        aliases: ['java'],
-                        keywords: [
-                            'abstract', 'assert', 'boolean', 'break', 'byte',
-                            'case', 'catch', 'char', 'class', 'const',
-                            'continue', 'default', 'do', 'double', 'else',
-                            'enum', 'extends', 'false', 'final', 'finally',
-                            'float', 'for', 'goto', 'if', 'implements',
-                            'import', 'instanceof', 'int', 'interface', 'long',
-                            'native', 'new', 'null', 'package', 'private',
-                            'protected', 'public', 'return', 'short', 'static',
-                            'strictfp', 'super', 'switch', 'synchronized', 'this',
-                            'throw', 'throws', 'true', 'transient', 'try',
-                            'void', 'volatile', 'while'
-                        ]
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'javafx',
-                        aliases : ['jfx', 'javafx']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'js',
-                        aliases : ['js', 'jscript', 'javascript', 'json'],
-                        keywords: [
-                            'break', 'case', 'catch', 'class', 'continue',
-                            'default', 'delete', 'do', 'else', 'enum',
-                            'export', 'extends', 'false', 'for', 'function',
-                            'if', 'implements', 'import', 'in', 'instanceof',
-                            'interface', 'let', 'new', 'null', 'package',
-                            'private', 'protected', 'static', 'return', 'super',
-                            'switch', 'this', 'throw', 'true', 'try',
-                            'typeof', 'var', 'while', 'with', 'yield'
-                        ]
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'perl',
-                        aliases : ['perl', 'pl']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'php',
-                        aliases : ['php']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'plain',
-                        aliases : ['text', 'plain']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'powershell',
-                        aliases : ['powershell', 'ps', 'posh']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'python',
-                        aliases : ['py', 'python']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'ruby',
-                        aliases : ['ruby', 'rails', 'ror', 'rb']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'sass',
-                        aliases : ['sass', 'scss']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'scala',
-                        aliases : ['scala']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'sql',
-                        aliases : ['sql']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'tap',
-                        aliases : ['tap']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'typescript',
-                        aliases : ['typescript', 'ts']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'vb',
-                        aliases : ['vb', 'vbnet']
-                    }));
-
-                    langs.add(new Y.CN.Model.Language({
-                        name    : 'xml',
-                        aliases : ['xml', 'xhtml', 'xslt', 'html', 'plist']
-                    }));
-
-                    return langs;
-                }
+                value: Y.CN.LanguageList
             }
         }
     });
@@ -454,7 +477,13 @@ YUI.add('cn-code-formatter', function (Y) {
 
     Y.namespace('CN').CodeFormatter = Y.Base.create('cn-code-formatter', Y.Base, [], {
         process: function (node) {}
-    }, {});
+    }, {
+        ATTRS: {
+            languages: {
+                value: Y.CN.LanguageList
+            }
+        }
+    });
 
 }, '1.0', {
     requires: [
@@ -469,10 +498,14 @@ YUI.add('cn-syntax-highlighter', function (Y) {
     Y.namespace('CN').SyntaxHighlighter = Y.Base.create('cn-syntax-highlighter', Y.Base, [], {
         process: function (node) {
             var lang = node.getAttribute('lang');
-            node.setAttribute('class', 'brush: ' + lang);
-            SyntaxHighlighter.highlight({}, node._node);
         }
-    }, {});
+    }, {
+        ATTRS: {
+            languages: {
+                value: Y.CN.LanguageList
+            }
+        }
+    });
 
 }, '1.0', {
     requires: [
