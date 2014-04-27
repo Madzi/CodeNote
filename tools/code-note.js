@@ -62,11 +62,301 @@ YUI.add('cn-code-cleaner', function (Y) {
     ]
 });
 
+YUI.add('cn-string-stream', function (Y) {
+
+    var countColumn = function(string, end, tabSize, startIndex, startValue) {
+        var i, nextTab;
+
+        if (end == null) {
+            end = string.search(/[^\s\u00a0]/);
+            if (end == -1) {
+                end = string.length;
+            }
+        }
+        for (i = startIndex || 0, n = startValue || 0;;) {
+            nextTab = string.indexOf("\t", i);
+            
+            if (nextTab < 0 || nextTab >= end) {
+                return n + (end - i);
+            }
+            n += nextTab - i;
+            n += tabSize - (n % tabSize);
+            i = nextTab + 1;
+        }
+    };
+
+
+    Y.namespace('CN').StringStream = Y.Base.create('cn-string-stream', Y.Base, [], {
+        eol: function () {
+            var pos    = this.getPos(),
+                string = this.getString();
+
+            return pos >= string.length;
+        },
+        
+        sol: function () {
+            var pos       = this.getPos(),
+                lineStart = this.getLineStart();
+
+            return pos === lineStart;
+        },
+
+        peek: function() {
+            var pos    = this.getPos(),
+                string = this.getString();
+
+            return string.charAt(pos) || undefined;
+        },
+
+        next: function() {
+            var pos    = this.getPos(),
+                string = this.getString();
+
+            if (pos < string.length) {
+                pos++;
+                this.setPos(pos);
+                return string.charAt(pos);
+            }
+        },
+
+        eat: function(match) {
+            var ok,
+                pos    = this.getPos(),
+                string = this.getString(), 
+                ch     = string.charAt(pos);
+
+            if (typeof match == "string") {
+                ok = ch == match; 
+            } else {
+                ok = ch && (match.test ? match.test(ch) : match(ch)); 
+            }
+            if (ok) {
+                this.setPos(pos++);
+                return ch;
+            }
+        },
+
+        eatWhile: function(match) {
+            var start = this.getPos();
+
+          while (this.eat(match)) { /** Do nothing */ }
+          return this.getPos() > start;
+        },
+
+        eatSpace: function() {
+            var pos     = this.getPos(),
+                string  = this.getString(),
+                start   = pos;
+
+            while (/[\s\u00a0]/.test(string.charAt(pos))) {
+                pos++;
+                this.setPos(pos);
+            };
+
+          return pos > start;
+        },
+
+        skipToEnd: function() {
+            var pos    = this.getPos(),
+                string = this.getString();
+
+            pos = string.length;
+        },
+
+        skipTo: function(ch) {
+            var pos    = this.getPos(),
+                string = this.getString(), 
+                found  = string.indexOf(ch, pos);
+
+            if (found > -1) {
+                this.setPos(found);
+                return true;
+            }
+        },
+
+        backUp: function(n) {
+            this.set('pos', this.get('pos') - n);
+        },
+
+        column: function() {
+            var start           = this.getStart(),
+                string          = this.getString(),
+                tabSize         = this.getTabSize(),
+                lineStart       = this.getLineStart(),
+                lastColumnPos   = this.getLastColumnPos(),
+                lastColumnValue = this.getLastColumnValue();
+
+            if (lastColumnPos < start) {
+                lastColumnValue = countColumn(string, start, tabSize, lastColumnPos, lastColumnValue);
+                this.setLastColumnValue(lastColumnValue);
+                lastColumnPos = start;
+                this.setLastColumnPos(lastColumnPos);
+            }
+            return lastColumnValue - (lineStart ? countColumn(string, lineStart, tabSize) : 0);
+        },
+
+        indentation: function() {
+            var string    = this.getString(),
+                tabSize   = this.getTabSize(),
+                lineStart = this.getLineStart();
+
+            return countColumn(string, null, tabSize) - (lineStart ? countColumn(string, lineStart, tabSize) : 0);
+        },
+
+        match: function(pattern, consume, caseInsensitive) {
+            var substr,
+                match,
+                pos     = this.getPos(),
+                string  = this.getString(),
+                cased = function (str) {
+                    return caseInsensitive ? str.toLowerCase() : str;
+                };
+
+            if (typeof pattern == "string") {
+                substr = string.substr(pos, pattern.length);
+                if (cased(substr) == cased(pattern)) {
+                    if (consume !== false) {
+                        pos += pattern.length;
+                        this.setPos(pos);
+                    }
+                    return true;
+                }
+            } else {
+                var match = string.slice(pos).match(pattern);
+                if (match && match.index > 0) {
+                    return null;
+                }
+                if (match && consume !== false) {
+                    pos += match[0].length;
+                    this.setPos(pos);
+                }
+                return match;
+            }
+        },
+
+        current: function () {
+            var string = this.getString(),
+                start  = this.getStart(),
+                pos    = this.getPos();
+
+            return string.slice(start, pos);
+        },
+
+        hideFirstChars: function(n, inner) {
+            var lineStart = this.getLineStart() + n;
+
+            this.setLineStart(lineStart);
+
+            try {
+                return inner();
+            } finally {
+                this.setLineStart(lineStart - n);
+            }
+        },
+
+        getPos: function () {
+            return this.get('pos');
+        },
+
+        setPos: function (pos) {
+            return this.set('pos');
+        },
+
+        getStart: function () {
+            return this.get('start');
+        },
+
+        setStart: function (start) {
+            return this.set('start', start);
+        },
+
+        getString: function () {
+            return this.get('string');
+        },
+
+        setString: function (string) {
+            return this.set('string', string);
+        },
+
+        getTabSize: function () {
+            return this.get('tabSize');
+        },
+
+        setTabSize: function (tabSize) {
+            return this.set('tabSize', tabSize);
+        },
+
+        getLastColumnPos: function () {
+            return this.get('lastColumnPos');
+        },
+
+        setLastColumnPos: function (lastColumnPos) {
+            return this.set('lastColumnPos', lastColumnPos);
+        },
+
+        getLastColumnValue: function () {
+            return this.get('lastColumnValue');
+        },
+
+        setLastColumnValue: function (lastColumnValue) {
+            return this.set('lastColumnValue', setLastColumnValue);
+        },
+
+        getLineStart: function () {
+            return this.get('lineStart');
+        },
+
+        setLineStart: function (lineStart) {
+            return this.set('lineStart', lineStart);
+        }
+    }, {
+        ATTRS: {
+            pos: {
+                value: 0
+            },
+            start: {
+                value: 0
+            },
+            string: {
+                value: null
+            },
+            tabSize: {
+                value: 8
+            },
+            lastColumnPos: {
+                value: 0
+            },
+            lastColumnValue: {
+                value: 0
+            },
+            lineStart: {
+                value: 0
+            }
+        }
+    });
+
+}, '1.0', {
+    requires: [
+        'base'
+    ]
+});
 
 
 YUI.add('cn-languages', function (Y) {
 
     Y.namespace('CN.Model').Language = Y.Base.create('cn-model-language', Y.Model, [], {
+        startState: function () {},
+
+        token: function (stream, state) {},
+
+        copyState: function (state) {},
+
+        ident: function (state, textAfter) {},
+
+        lineComment: function () {},
+        blockCommentStart: function () {},
+        blockCommentEnd: function () {},
+
         getName: function () {
             return this.get('name');
         },
@@ -99,198 +389,21 @@ YUI.add('cn-languages', function (Y) {
     });
 
     Y.namespace('CN.Model.List').Language = Y.Base.create('cn-model-list-language', Y.ModelList, [], {
-        model: Y.CN.Model.Language
+        model: Y.CN.Model.Language,
+
+        find: function (lang) {
+            var result = null;
+
+            return result;
+        }
     });
 
-    Y.namespace('CN.Language').AS3 = new Y.CN.Model.Language({
-        name: 'as3', aliases: ['as3', 'actionscript3']
-    });
+    Y.namespace('CN').Languages = new Y.CN.Model.List.Language();
 
-    Y.namespace('CN.Language').AppleScript = new Y.CN.Model.Language({
-        name: 'applescript', aliases: ['applescript']
-    });
-
-    Y.namespace('CN.Language').Bash = new Y.CN.Model.Language({
-        name: 'bash', aliases: ['bash', 'shell', 'sh']
-    });
-
-    Y.namespace('CN.Language').CSharp = new Y.CN.Model.Language({
-        name: 'csharp', aliases: ['csharp', 'c-sharp', 'c#']
-    });
-
-    Y.namespace('CN.Language').ColdFusion = new Y.CN.Model.Language({
-        name: 'cf', aliases: ['coldfusion', 'cf']
-    });
-
-    Y.namespace('CN.Language').Cpp = new Y.CN.Model.Language({
-        name: 'cpp', aliases: ['cpp', 'cc', 'c++', 'c', 'h', 'hpp', 'h++']
-    });
-
-    Y.namespace('CN.Language').Css = new Y.CN.Model.Language({
-        name: 'css', aliases: ['css']
-    });
-
-    Y.namespace('CN.Language').Delphi = new Y.CN.Model.Language({
-        name: 'delphi', aliases: ['delphi', 'pascal', 'pas']
-    });
-
-    Y.namespace('CN.Language').Diff = new Y.CN.Model.Language({
-        name: 'diff', aliases: ['diff', 'patch']
-    });
-
-    Y.namespace('CN.Language').Erlang = new Y.CN.Model.Language({
-        name: 'erlang', aliases: ['erlang', 'erl']
-    });
-
-    Y.namespace('CN.Language').Groovy = new Y.CN.Model.Language({
-        name: 'groovy', aliases: ['groovy']
-    });
-
-    Y.namespace('CN.Language').Haxe = new Y.CN.Model.Language({
-        name: 'haxe', aliases: ['haxe', 'hx']
-    });
-
-    Y.namespace('CN.Language').JScript = new Y.CN.Model.Language({
-        name: 'js', aliases: ['js', 'jscript', 'javascript', 'json'],
-        keywords: [
-            'break', 'case', 'catch', 'class', 'continue',
-            'default', 'delete', 'do', 'else', 'enum',
-            'export', 'extends', 'false', 'for', 'function',
-            'if', 'implements', 'import', 'in', 'instanceof',
-            'interface', 'let', 'new', 'null', 'package',
-            'private', 'protected', 'static', 'return', 'super',
-            'switch', 'this', 'throw', 'true', 'try',
-            'typeof', 'var', 'while', 'with', 'yield'
-        ]
-    });
-
-    Y.namespace('CN.Language').Java = new Y.CN.Model.Language({
-        name: 'java', aliases: ['java'],
-        keywords: [
-            'abstract', 'assert', 'boolean', 'break', 'byte',
-            'case', 'catch', 'char', 'class', 'const',
-            'continue', 'default', 'do', 'double', 'else',
-            'enum', 'extends', 'false', 'final', 'finally',
-            'float', 'for', 'goto', 'if', 'implements',
-            'import', 'instanceof', 'int', 'interface', 'long',
-            'native', 'new', 'null', 'package', 'private',
-            'protected', 'public', 'return', 'short', 'static',
-            'strictfp', 'super', 'switch', 'synchronized', 'this',
-            'throw', 'throws', 'true', 'transient', 'try',
-            'void', 'volatile', 'while'
-        ]
-    });
-
-    Y.namespace('CN.Language').JavaFX = new Y.CN.Model.Language({
-        name: 'javafx', aliases: ['javafx', 'jfx']
-    });
-
-    Y.namespace('CN.Language').Perl = new Y.CN.Model.Language({
-        name: 'perl', aliases: ['perl', 'pl']
-    });
-
-    Y.namespace('CN.Language').Php = new Y.CN.Model.Language({
-        name: 'php', aliases: ['php']
-    });
-
-    Y.namespace('CN.Language').Plain = new Y.CN.Model.Language({
-        name: 'plain', aliases: ['plain', 'text']
-    });
-
-    Y.namespace('CN.Language').PowerShell = new Y.CN.Model.Language({
-        name: 'powershell', aliases: ['powershell', 'ps', 'posh']
-    });
-
-    Y.namespace('CN.Language').Python = new Y.CN.Model.Language({
-        name: 'python', aliases: ['py', 'python']
-    });
-
-    Y.namespace('CN.Language').Ruby = new Y.CN.Model.Language({
-        name: 'ruby', aliases: ['ruby', 'rails', 'ror', 'rb'],
-        keywords: [
-                'alias', 'and', 'BEGIN', 'begin', 'break', 'case', 'class', 'def', 'define_method', 'defined',
-                'do', 'each', 'else', 'elsif', 'END', 'end', 'ensure', 'false', 'for', 'if',
-                'in', 'module', 'new', 'next', 'nil', 'not', 'or', 'raise', 'redo', 'rescue',
-                'retry', 'return', 'self', 'super', 'then', 'throw', 'true', 'undef', 'unless', 'until',
-                'when', 'while', 'yield';
-        ],
-        builtins: [
-                'Array', 'Bignum', 'Binding', 'Class', 'Continuation', 'Dir', 'Exception', 'FalseClass', 'File::Stat', 'File',
-                'Fixnum', 'Fload', 'Hash', 'Integer', 'IO', 'MatchData', 'Method', 'Module', 'NilClass', 'Numeric',
-                'Object', 'Proc', 'Range', 'Regexp', 'String', 'Struct::TMS', 'Symbol', 'ThreadGroup', 'Thread', 'Time', 'TrueClass'
-        ],
-        regexs: [
-            { regex: SyntaxHighlighter.regexLib.singleLinePerlComments, style: 'comments' },
-            { regex: SyntaxHighlighter.regexLib.doubleQuotedString,     style: 'string' },
-            { regex: SyntaxHighlighter.regexLib.singleQuotedString,     style: 'string' },
-            { regex: /\b[A-Z0-9_]+\b/g,                                 style: 'constants' },
-            { regex: /:[a-z][A-Za-z0-9_]*/g,                            style: 'color2' },
-            { regex: /(\$|@@|@)\w+/g,                                   style: 'variable bold' },
-            { regex: new RegExp(this.getKeywords(keywords), 'gm'),      style: 'keyword' },
-            { regex: new RegExp(this.getKeywords(builtins), 'gm'),      style: 'color1' }
-        ]
-    });
-
-    Y.namespace('CN.Language').Sass = new Y.CN.Model.Language({
-        name: 'sass', aliases: ['sass', 'scss']
-    });
-
-    Y.namespace('CN.Language')Scala. = new Y.CN.Model.Language({
-        name: 'scala', aliases: ['scala']
-    });
-
-    Y.namespace('CN.Language').Sql = new Y.CN.Model.Language({
-        name: 'sql', aliases: ['sql']
-    });
-
-    Y.namespace('CN.Language').TAP = new Y.CN.Model.Language({
-        name: 'tap', aliases: ['tap']
-    });
-
-    Y.namespace('CN.Language').TypeScript = new Y.CN.Model.Language({
-        name: 'typescript', aliases: ['typescript', 'ts']
-    });
-
-    Y.namespace('CN.Language').Vb = new Y.CN.Model.Language({
-        name: 'vb', aliases: ['vb', 'vbnet']
-    });
-
-    Y.namespace('CN.Language').Xml = new Y.CN.Model.Language({
-        name: 'xml', aliases: ['xml', 'xhtml', 'xslt', 'html', 'plist']
-    });
-
-    var langs = = new Y.CN.Model.List.Language();
-
-    langs.add(Y.CN.Language.AS3);
-    langs.add(Y.CN.Language.AppleScript);
-    langs.add(Y.CN.Language.Bash);
-    langs.add(Y.CN.Language.CSharp);
-    langs.add(Y.CN.Language.ColdFusion);
-    langs.add(Y.CN.Language.Cpp);
-    langs.add(Y.CN.Language.Css);
-    langs.add(Y.CN.Language.Delphi);
-    langs.add(Y.CN.Language.Diff);
-    langs.add(Y.CN.Language.Erlang);
-    langs.add(Y.CN.Language.Groovy);
-    langs.add(Y.CN.Language.Haxe);
-    langs.add(Y.CN.Language.JScript);
-    langs.add(Y.CN.Language.Java);
-    langs.add(Y.CN.Language.JavaFX);
-    langs.add(Y.CN.Language.Perl);
-    langs.add(Y.CN.Language.Php);
-    langs.add(Y.CN.Language.Plain);
-    langs.add(Y.CN.Language.PowerShell);
-    langs.add(Y.CN.Language.Python);
-    langs.add(Y.CN.Language.Ruby);
-    langs.add(Y.CN.Language.Sass);
-    langs.add(Y.CN.Language.Scala);
-    langs.add(Y.CN.Language.Sql);
-    langs.add(Y.CN.Language.TAP);
-    langs.add(Y.CN.Language.TypeScript);
-    langs.add(Y.CN.Language.Vb);
-    langs.add(Y.CN.Language.Xml);
-
-    Y.namespace('CN').LanguageList = langs;
+    Y.CN.Languages.add(new Y.CN.Model.Language({
+        name    : 'applescript',
+        aliases : ['applescript']
+    }));
 
 }, '1.0', {
     requires: [
@@ -458,7 +571,174 @@ YUI.add('cn-lang-detector', function (Y) {
     }, {
         ATTRS: {
             languages: {
-                value: Y.CN.LanguageList
+                valueFn: function () {
+                    var langs = new Y.CN.Model.List.Language();
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'applescript',
+                        aliases : ['applescript']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'as3',
+                        aliases : ['as3', 'actionscript3']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'bash',
+                        aliases : ['bash', 'shell', 'sh']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'cf',
+                        aliases : ['coldfusion', 'cf']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'cpp',
+                        aliases : ['cpp', 'cc', 'c++', 'c', 'h', 'hpp', 'h++']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'csharp',
+                        aliases : ['c#', 'c-sharp', 'csharp']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'css',
+                        aliases : ['css']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'delphi',
+                        aliases : ['delphi', 'pascal', 'pas']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'diff',
+                        aliases : ['diff', 'patch']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'erlang',
+                        aliases : ['erl', 'erlang']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'groovy',
+                        aliases : ['groovy']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'haxe',
+                        aliases : ['haxe', 'hx']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name: 'java',
+                        aliases: ['java'],
+                        keywords: [
+                            'abstract', 'assert', 'boolean', 'break', 'byte',
+                            'case', 'catch', 'char', 'class', 'const',
+                            'continue', 'default', 'do', 'double', 'else',
+                            'enum', 'extends', 'false', 'final', 'finally',
+                            'float', 'for', 'goto', 'if', 'implements',
+                            'import', 'instanceof', 'int', 'interface', 'long',
+                            'native', 'new', 'null', 'package', 'private',
+                            'protected', 'public', 'return', 'short', 'static',
+                            'strictfp', 'super', 'switch', 'synchronized', 'this',
+                            'throw', 'throws', 'true', 'transient', 'try',
+                            'void', 'volatile', 'while'
+                        ]
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'javafx',
+                        aliases : ['jfx', 'javafx']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'js',
+                        aliases : ['js', 'jscript', 'javascript', 'json'],
+                        keywords: [
+                            'break', 'case', 'catch', 'class', 'continue',
+                            'default', 'delete', 'do', 'else', 'enum',
+                            'export', 'extends', 'false', 'for', 'function',
+                            'if', 'implements', 'import', 'in', 'instanceof',
+                            'interface', 'let', 'new', 'null', 'package',
+                            'private', 'protected', 'static', 'return', 'super',
+                            'switch', 'this', 'throw', 'true', 'try',
+                            'typeof', 'var', 'while', 'with', 'yield'
+                        ]
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'perl',
+                        aliases : ['perl', 'pl']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'php',
+                        aliases : ['php']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'plain',
+                        aliases : ['text', 'plain']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'powershell',
+                        aliases : ['powershell', 'ps', 'posh']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'python',
+                        aliases : ['py', 'python']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'ruby',
+                        aliases : ['ruby', 'rails', 'ror', 'rb']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'sass',
+                        aliases : ['sass', 'scss']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'scala',
+                        aliases : ['scala']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'sql',
+                        aliases : ['sql']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'tap',
+                        aliases : ['tap']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'typescript',
+                        aliases : ['typescript', 'ts']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'vb',
+                        aliases : ['vb', 'vbnet']
+                    }));
+
+                    langs.add(new Y.CN.Model.Language({
+                        name    : 'xml',
+                        aliases : ['xml', 'xhtml', 'xslt', 'html', 'plist']
+                    }));
+
+                    return langs;
+                }
             }
         }
     });
@@ -477,13 +757,7 @@ YUI.add('cn-code-formatter', function (Y) {
 
     Y.namespace('CN').CodeFormatter = Y.Base.create('cn-code-formatter', Y.Base, [], {
         process: function (node) {}
-    }, {
-        ATTRS: {
-            languages: {
-                value: Y.CN.LanguageList
-            }
-        }
-    });
+    }, {});
 
 }, '1.0', {
     requires: [
@@ -497,19 +771,74 @@ YUI.add('cn-syntax-highlighter', function (Y) {
 
     Y.namespace('CN').SyntaxHighlighter = Y.Base.create('cn-syntax-highlighter', Y.Base, [], {
         process: function (node) {
-            var lang = node.getAttribute('lang');
+            var olNode   = Y.Node.create('<ol></ol>'),
+                spanNode,
+                token,
+                language = (this.getLanguages()).find(node.getAttribute('lang') || 'js');
+                text     = node.getHTML(),
+                stream   = new Y.CN.StringStream({ buf: text }),
+                state    = {};
+
+            if (language) {
+                language.startState(state); //todo...
+                while (!stream.eol()) {
+                    token = language.token(stream, state);
+                    spanNode = Y.Node.create('<span></span>');
+                    spanNode.setHTML(token.text);
+                    spanNode.setStyle(this.getStyle(token.style));
+                    olNode.appendChild(spanNode);
+                }                
+            };
+        },
+
+        getStyle: function (style) {
+            var styles = this.getStyles();
+
+            return styles[style];
+        },
+
+        getStyles: function () {
+            return this.getS('styles');
+        },
+
+        getLanguages: function () {
+            return this.get('languages');
         }
     }, {
         ATTRS: {
+            styles: {
+                value: {
+                    comment     : 'background: #272822; color: #75715e;',
+                    atom        : 'background: #272822; color: #ae81ff;',
+                    number      : 'background: #272822; color: #ae81ff;',
+                    property    : 'background: #272822; color: #a6e22e;',
+                    attribute   : 'background: #272822; color: #a6e22e;',
+                    keyword     : 'background: #272822; color: #f92672;',
+                    string      : 'background: #272822; color: #e6db74;',
+                    var1        : 'background: #272822; color: #a6e22e;',
+                    var2        : 'background: #272822; color: #9effff;',
+                    def         : 'background: #272822; color: #fd971f;',
+                    delimiter   : 'background: #272822; color: #f8f8f2;',
+                    tag         : 'background: #272822; color: #f92672;',
+                    link        : 'background: #272822; color: #ae81ff;',
+                    error       : 'background: #f92672; color: #f8f8f0;',
+                    "undefined" : 'background: #272822; color: #f8f8f2;'
+                },
+                readOnly: true
+            },
             languages: {
-                value: Y.CN.LanguageList
-            }
+                valueFn: function () {
+                    return Y.CN.Languages;
+                }
+            } 
         }
     });
 
 }, '1.0', {
     requires: [
-        'base'
+        'base',
+        'cn-string-stream',
+        'cn-languages'
     ] 
 });
 
